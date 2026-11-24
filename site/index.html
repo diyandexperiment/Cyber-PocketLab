@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Pocket Lab – Flash Bruce, Launcher and more on ESP32 CYD from your browser</title>
+<meta name="description" content="Flash Bruce, Launcher and other open-source ESP32 firmware to your CYD (Cheap Yellow Display) from Chrome or Edge. Pick the latest or previous version and flash over USB.">
+<link rel="canonical" href="__SITE_URL__/">
+<meta property="og:title" content="Cyber Pocket Lab – ESP32 CYD web flasher">
+<meta property="og:description" content="Browser-based firmware flasher for ESP32 CYD: Launcher, Bruce and more. Latest and previous versions.">
+<meta property="og:url" content="__SITE_URL__/">
+<meta name="theme-color" content="#0f1e2b">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cyber Pocket Lab Web Flasher","url":"__SITE_URL__/","applicationCategory":"DeveloperApplication","operatingSystem":"Chrome, Edge","description":"Flash open-source ESP32 firmware to a CYD board over USB from the browser.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="module" src="https://unpkg.com/esp-web-tools@10.0.1/dist/web/install-button.js?module"></script>
+<style>
+:root{--bg:#0f1e2b;--panel:#16293a;--line:#2a4358;--tx:#e8eef2;--mut:#93a8b8;--yl:#f2c230;--yl-d:#3a2f08;--ok:#6fd3a8;--bad:#ff8f7a}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+a{color:var(--yl)}
+:focus-visible{outline:3px solid var(--yl);outline-offset:2px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0;font-weight:700;letter-spacing:.2px}
+header.top span{color:var(--yl)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center;padding:28px 0 40px}
+h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.08;margin:0 0 14px;letter-spacing:-.02em}
+.lead{color:var(--mut);max-width:46ch;margin:0}
+.board{background:#f2c230;border-radius:18px;padding:16px;box-shadow:0 0 0 2px #b98f10 inset;max-width:340px;justify-self:center;width:100%}
+.screen{background:#07131c;border-radius:8px;aspect-ratio:4/3;padding:14px;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;color:#bfe9d6;display:flex;flex-direction:column;justify-content:center}
+.screen b{color:var(--yl)}
+.cur{display:inline-block;width:8px;height:14px;background:#bfe9d6;vertical-align:-2px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+.board small{display:block;text-align:center;color:#5b4503;margin-top:10px;font-weight:700}
+#env{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px 14px;margin:0 0 24px;color:var(--mut)}
+#env.bad{border-color:var(--bad)}#env.good{border-color:var(--ok)}
+#env strong{color:var(--tx)}
+h2{font-size:1.25rem;margin:0 0 12px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:22px}
+.fw{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:block}
+.fw:hover{border-color:var(--mut)}
+.fw[aria-pressed=true]{border-color:var(--yl);background:var(--yl-d)}
+.fw:focus-visible{outline:3px solid var(--yl);outline-offset:2px}
+.fw b{display:block}.fw span{color:var(--mut);font-size:.85rem}
+.soon{opacity:.55;cursor:default}
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:40px}
+.detail p{margin:.3rem 0 14px;color:var(--mut);max-width:62ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+select{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;max-width:100%}
+button.flash{background:var(--yl);color:#1b1500;border:0;border-radius:10px;padding:13px 22px;font:700 1rem system-ui;cursor:pointer}
+button.flash:hover{filter:brightness(1.08)}
+button.flash[disabled]{background:#3b4f60;color:#93a8b8;cursor:not-allowed}
+.meta{font-size:.85rem;color:var(--mut);word-break:break-all}
+.steps{color:var(--mut);padding-left:20px}
+footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);font-size:.88rem}
+@media (max-width:720px){.hero{grid-template-columns:1fr;gap:22px}.board{order:-1;max-width:260px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div>Cyber Pocket <span>Lab</span></div><a href="#flash">Flash now</a></header>
+
+  <section class="hero">
+    <div>
+      <h1>Flash your ESP32 CYD from the browser</h1>
+      <p class="lead">Pick a firmware, choose the latest or an older version, and flash over USB. No toolchain, no installs. Works on Chrome and Edge.</p>
+    </div>
+    <div class="board" aria-hidden="true"><div class="screen"><span>&gt; cyber-pocket-lab</span><span>&gt; device: <b>ESP32 CYD</b></span><span>&gt; status: ready<span class="cur"></span></span></div><small>CYD 2432S028</small></div>
+  </section>
+
+  <main id="flash">
+    <div id="env" role="status"></div>
+    <h2>1. Choose firmware</h2>
+    <div class="list" id="list"><p style="color:var(--mut)">Loading firmware list…</p></div>
+    <div class="detail" id="detail" hidden>
+      <h2 id="d-name"></h2>
+      <p id="d-desc"></p>
+      <div class="row"><label for="ver">Version</label><select id="ver"></select><span class="meta" id="d-date"></span></div>
+      <div class="row" id="flashbox"></div>
+      <div class="meta" id="d-meta"></div>
+    </div>
+
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li>Connect the CYD with a USB data cable. On a phone, use an OTG adapter.</li>
+      <li>Press Flash. Your browser shows a device list; choose the CYD's serial port.</li>
+      <li>If the flash does not start, hold BOOT while connecting, then try again.</li>
+      <li>Install Launcher first if you want to switch firmware later without a computer.</li>
+    </ol>
+  </main>
+</div>
+<footer><div class="wrap">
+  <p>Firmware belongs to its authors and is distributed under their licenses (shown on each firmware, with a link to its source). Cyber Pocket Lab only mirrors official GitHub releases. Some of these tools are for security testing: use them only on networks and devices you own or are authorized to test, and follow your local laws. Flashing is at your own risk.</p>
+  <p id="upd"></p>
+</div></footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ua = navigator.userAgent, hasSerial = 'serial' in navigator;
+const ios = /iPhone|iPad|iPod/.test(ua), android = /Android/.test(ua);
+const canFlash = hasSerial;
+const env = $('#env');
+if (canFlash) { env.className = 'good'; env.innerHTML = android
+  ? '<strong>Phone detected.</strong> Plug the CYD in with an OTG cable. When you press Flash, pick the USB device from the list.'
+  : '<strong>Computer detected.</strong> When you press Flash, pick the CYD\'s serial port (COM port on Windows) from the list.'; }
+else { env.className = 'bad'; env.innerHTML = (ios ? '<strong>iPhone and iPad cannot flash from the browser.</strong>' : '<strong>This browser cannot flash devices.</strong> Use Chrome or Edge on a computer.') +
+  ' On Android, you can also use the <a href="https://play.google.com/store/apps/details?id=com.esp_flash.esp_flash_app" rel="noopener">ESP32_Flasher app</a> with the .bin download below.'; }
+
+let data, cur;
+const mb = n => (n/1048576).toFixed(2) + ' MB';
+function select(fw) {
+  cur = fw;
+  document.querySelectorAll('.fw[data-id]').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === fw.id));
+  $('#detail').hidden = false;
+  $('#d-name').textContent = fw.name;
+  $('#d-desc').innerHTML = esc(fw.desc || '') + ' <a href="' + esc(fw.url) + '" rel="noopener">Source</a> · ' + esc(fw.license || 'See repo');
+  $('#ver').innerHTML = fw.versions.map((v,i) => `<option value="${i}">${esc(v.label)} – ${esc(v.tag)}${v.prerelease ? ' (pre-release)' : ''}</option>`).join('');
+  version(0);
+}
+function version(i) {
+  const v = cur.versions[i];
+  $('#d-date').textContent = 'Released ' + new Date(v.date).toLocaleDateString();
+  $('#flashbox').innerHTML = canFlash
+    ? `<esp-web-install-button manifest="${esc(v.manifest)}"><button slot="activate" class="flash">Flash ${esc(cur.name)} ${esc(v.tag)}</button><span slot="unsupported">Browser not supported.</span><span slot="not-allowed">Open this page over HTTPS to flash.</span></esp-web-install-button>`
+    : `<button class="flash" disabled>Flash (not supported here)</button>`;
+  $('#d-meta').innerHTML = `<a href="${esc(v.file)}" download>Download .bin (${mb(v.size)})</a> · <a href="${esc(v.notes)}" rel="noopener">Release notes</a><br>SHA-256: ${esc(v.sha256)}`;
+}
+$('#ver').addEventListener('change', e => version(+e.target.value));
+fetch('data.json').then(r => r.json()).then(d => {
+  data = d;
+  $('#list').innerHTML = '';
+  d.firmwares.forEach(fw => {
+    const b = document.createElement('button');
+    b.className = 'fw'; b.dataset.id = fw.id; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<b>${esc(fw.name)}</b><span>${esc(fw.versions[0].tag)}</span>`;
+    b.onclick = () => select(fw);
+    $('#list').appendChild(b);
+  });
+  d.soon.forEach(s => {
+    const b = document.createElement('div');
+    b.className = 'fw soon'; b.innerHTML = `<b>${esc(s.name)}</b><span>Coming soon</span>`;
+    $('#list').appendChild(b);
+  });
+  $('#upd').textContent = 'Firmware list updated ' + new Date(d.updated).toLocaleString() + '.';
+  select(d.firmwares[0]);
+}).catch(() => { $('#list').innerHTML = '<p>The firmware list could not be loaded. Reload the page, or try again in a few minutes.</p>'; });
+</script>
+</body>
+</html>
